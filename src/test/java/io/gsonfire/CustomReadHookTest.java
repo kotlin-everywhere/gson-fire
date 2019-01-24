@@ -1,7 +1,6 @@
 package io.gsonfire;
 
 import com.google.gson.Gson;
-import io.gsonfire.gson.HooksTypeAdapter;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -14,18 +13,14 @@ public class CustomReadHookTest {
     public void test() {
         final Typed staticTyped = new Typed();
         final Gson gson = new GsonFireBuilder()
-                .registerTypeSelector(Typed.class, readElement -> null)
+                .registerTypeSelector(Typed.class, readElement -> null, element -> Optional.of(staticTyped))
                 .createGson();
 
         final String json = gson.toJson(new Typed());
         assertEquals("{\"name\":\"io.gsonfire.CustomReadHookTest$Typed\"}", json);
 
         final Typed instance = gson.fromJson(json, Typed.class);
-        Assert.assertNotSame(staticTyped, instance);
-
-        final HooksTypeAdapter<Typed> adapter = (HooksTypeAdapter<Typed>) gson.getAdapter(Typed.class);
-        adapter.setPreRead(element -> Optional.of(staticTyped));
-        Assert.assertEquals(staticTyped, staticTyped);
+        Assert.assertEquals(staticTyped, instance);
     }
 
     private static class Typed {

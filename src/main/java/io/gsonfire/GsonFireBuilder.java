@@ -33,9 +33,9 @@ public final class GsonFireBuilder {
     private boolean enableExposeMethodResults = false;
     private boolean enableExclusionByValueStrategies = false;
 
-    private ClassConfig getClassConfig(Class clazz){
+    private ClassConfig getClassConfig(Class clazz) {
         ClassConfig result = classConfigMap.get(clazz);
-        if(result == null){
+        if (result == null) {
             result = new ClassConfig(clazz);
             classConfigMap.put(clazz, result);
             insertOrdered(orderedClasses, clazz);
@@ -44,9 +44,9 @@ public final class GsonFireBuilder {
     }
 
     private static void insertOrdered(List<Class> classes, Class clazz) {
-        for(int i = classes.size() - 1; i >= 0; i--) {
+        for (int i = classes.size() - 1; i >= 0; i--) {
             Class current = classes.get(i);
-            if(current.isAssignableFrom(clazz)) {
+            if (current.isAssignableFrom(clazz)) {
                 classes.add(i + 1, clazz);
                 return;
             }
@@ -59,14 +59,22 @@ public final class GsonFireBuilder {
      * A type selector is in charge of deciding which sub class to use when converting a json
      * into an object.<br />
      * See <a href="http://goo.gl/qKo7z"> docs and example</a>
+     *
      * @param clazz
      * @param factory
      * @param <T>
      * @return
      */
-    public <T> GsonFireBuilder registerTypeSelector(Class<T> clazz, TypeSelector<T> factory){
+    public <T> GsonFireBuilder registerTypeSelector(Class<T> clazz, TypeSelector<T> factory) {
         ClassConfig config = getClassConfig(clazz);
         config.setTypeSelector(factory);
+        return this;
+    }
+
+    public <T> GsonFireBuilder registerTypeSelector(Class<T> clazz, TypeSelector<T> factory, PreRead<T> preRead) {
+        ClassConfig config = getClassConfig(clazz);
+        config.setTypeSelector(factory);
+        config.setPreRead(preRead);
         return this;
     }
 
@@ -81,7 +89,7 @@ public final class GsonFireBuilder {
      * @param <T>
      * @return
      */
-    public <T> GsonFireBuilder registerPostProcessor(Class<T> clazz, PostProcessor<? super T> postProcessor){
+    public <T> GsonFireBuilder registerPostProcessor(Class<T> clazz, PostProcessor<? super T> postProcessor) {
         ClassConfig config = getClassConfig(clazz);
         config.getPostProcessors().add(postProcessor);
         return this;
@@ -98,7 +106,7 @@ public final class GsonFireBuilder {
      * @param <T>
      * @return
      */
-    public <T> GsonFireBuilder registerPreProcessor(Class<T> clazz, PreProcessor<? super T> preProcessor){
+    public <T> GsonFireBuilder registerPreProcessor(Class<T> clazz, PreProcessor<? super T> preProcessor) {
         ClassConfig config = getClassConfig(clazz);
         config.getPreProcessors().add(preProcessor);
         return this;
@@ -106,10 +114,11 @@ public final class GsonFireBuilder {
 
     /**
      * Configures the resulting Gson to serialize/unserialize Date instances with a policy
+     *
      * @param policy
      * @return
      */
-    public GsonFireBuilder dateSerializationPolicy(DateSerializationPolicy policy){
+    public GsonFireBuilder dateSerializationPolicy(DateSerializationPolicy policy) {
         dateSerializationPolicy = policy;
         return this;
     }
@@ -149,9 +158,10 @@ public final class GsonFireBuilder {
     /**
      * By enabling this, all methods with the annotation {@link io.gsonfire.annotations.ExposeMethodResult} will
      * be evaluated and it result will be added to the resulting json
+     *
      * @return
      */
-    public GsonFireBuilder enableExposeMethodResult(){
+    public GsonFireBuilder enableExposeMethodResult() {
         this.enableExposeMethodResults = true;
         return this;
     }
@@ -159,9 +169,10 @@ public final class GsonFireBuilder {
     /**
      * By enabling this, all exclusion by value strategies specified with the annotation
      * {@link io.gsonfire.annotations.ExcludeByValue} will be run to remove specific fields from the resulting json
+     *
      * @return
      */
-    public GsonFireBuilder enableExclusionByValue(){
+    public GsonFireBuilder enableExclusionByValue() {
         this.enableExclusionByValueStrategies = true;
         return this;
     }
@@ -169,9 +180,10 @@ public final class GsonFireBuilder {
     /**
      * By enabling this, all methods with the annotation {@link io.gsonfire.annotations.ExposeMethodResult} will
      * be evaluated and it result will be added to the resulting json
+     *
      * @return
      */
-    public GsonFireBuilder enableHooks(Class clazz){
+    public GsonFireBuilder enableHooks(Class clazz) {
         ClassConfig config = getClassConfig(clazz);
         config.setHooksEnabled(true);
         return this;
@@ -181,12 +193,13 @@ public final class GsonFireBuilder {
      * By enabling this, when a class is being converted to Json and it contains a {@link java.util.Map} class
      * annotated with {@link io.gsonfire.annotations.MergeMap}, the map will be walked and merged
      * with the resulting json object.
-     *
+     * <p>
      * This method has been deprecated and a {@link io.gsonfire.PostProcessor} should be used instead
+     *
      * @return
      */
     @Deprecated
-    public GsonFireBuilder enableMergeMaps(Class clazz){
+    public GsonFireBuilder enableMergeMaps(Class clazz) {
         registerPostProcessor(clazz, new MergeMapPostProcessor(fieldInspector));
         return this;
     }
@@ -194,6 +207,7 @@ public final class GsonFireBuilder {
     /**
      * Sets the serialization TimeZone. This will affect only values that depend on the TimeZone, for example rfc3339
      * dates.
+     *
      * @param timeZone
      * @return
      */
@@ -205,6 +219,7 @@ public final class GsonFireBuilder {
     /**
      * Defines a default value for an enum when its String representation does not match any of the enum values.
      * The <code>defaultValue</code> can be null.
+     *
      * @param enumClass
      * @param defaultValue
      * @param <T>
@@ -222,34 +237,35 @@ public final class GsonFireBuilder {
 
     /**
      * Returns a new instance of the good old {@link GsonBuilder}
+     *
      * @return
      */
-    public GsonBuilder createGsonBuilder(){
+    public GsonBuilder createGsonBuilder() {
         Set<TypeToken> alreadyResolvedTypeTokensRegistry = Collections.newSetFromMap(new ConcurrentHashMap<TypeToken, Boolean>());
         GsonBuilder builder = new GsonBuilder();
 
-        if(enableExposeMethodResults) {
+        if (enableExposeMethodResults) {
             FireExclusionStrategy compositeExclusionStrategy = new FireExclusionStrategyComposite(serializationExclusions);
             registerPostProcessor(Object.class, new MethodInvokerPostProcessor<Object>(compositeExclusionStrategy));
         }
 
-        if(enableExclusionByValueStrategies) {
+        if (enableExclusionByValueStrategies) {
             builder.registerTypeAdapterFactory(new ExcludeByValueTypeAdapterFactory(fieldInspector, factory));
         }
 
-        for(Class clazz: orderedClasses){
+        for (Class clazz : orderedClasses) {
             ClassConfig config = classConfigMap.get(clazz);
-            if(config.getTypeSelector() != null) {
+            if (config.getTypeSelector() != null) {
                 builder.registerTypeAdapterFactory(new TypeSelectorTypeAdapterFactory(config, alreadyResolvedTypeTokensRegistry));
             }
             builder.registerTypeAdapterFactory(new HooksTypeAdapterFactory(config));
         }
 
-        for(Map.Entry<Class, Enum> enumDefault: enumDefaultValues.entrySet()) {
+        for (Map.Entry<Class, Enum> enumDefault : enumDefaultValues.entrySet()) {
             builder.registerTypeAdapterFactory(new EnumDefaultValueTypeAdapterFactory(enumDefault.getKey(), enumDefault.getValue()));
         }
 
-        if(dateSerializationPolicy != null){
+        if (dateSerializationPolicy != null) {
             builder.registerTypeAdapter(Date.class, dateSerializationPolicy.createTypeAdapter(serializeTimeZone));
         }
 
@@ -261,9 +277,10 @@ public final class GsonFireBuilder {
 
     /**
      * Returns a new {@link Gson} instance
+     *
      * @return
      */
-    public Gson createGson(){
+    public Gson createGson() {
         return createGsonBuilder().create();
     }
 }

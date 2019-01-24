@@ -5,6 +5,7 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import io.gsonfire.ClassConfig;
+import io.gsonfire.PreRead;
 import io.gsonfire.TypeSelector;
 import io.gsonfire.util.JsonUtils;
 
@@ -17,7 +18,7 @@ import java.util.function.Function;
  * Creates a {@link TypeAdapter} that will run the {@link TypeSelector} and find the {@link TypeAdapter} for the selected
  * type.
  */
-public class TypeSelectorTypeAdapterFactory<T> implements TypeAdapterFactory{
+public class TypeSelectorTypeAdapterFactory<T> implements TypeAdapterFactory {
 
     private final ClassConfig<T> classConfig;
     private final Set<TypeToken> alreadyResolvedTypeTokensRegistry;
@@ -29,14 +30,14 @@ public class TypeSelectorTypeAdapterFactory<T> implements TypeAdapterFactory{
 
     @Override
     public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> type) {
-        if(alreadyResolvedTypeTokensRegistry.contains(type)) {
+        if (alreadyResolvedTypeTokensRegistry.contains(type)) {
             return null;
         }
-        if(classConfig.getConfiguredClass().isAssignableFrom(type.getRawType())){
+        if (classConfig.getConfiguredClass().isAssignableFrom(type.getRawType())) {
             TypeAdapter<T> fireTypeAdapter =
-                new NullableTypeAdapter<T>(
-                    new TypeSelectorTypeAdapter<T>(type.getRawType(), classConfig.getTypeSelector(), gson)
-                );
+                    new NullableTypeAdapter<T>(
+                            new TypeSelectorTypeAdapter<T>(type.getRawType(), classConfig.getTypeSelector(), gson, (PreRead<T>) classConfig.getPreRead())
+                    );
             return fireTypeAdapter;
         } else {
             return null;
@@ -48,13 +49,13 @@ public class TypeSelectorTypeAdapterFactory<T> implements TypeAdapterFactory{
         private final Class superClass;
         private final TypeSelector typeSelector;
         private final Gson gson;
+        private final PreRead<T> preRead;
 
-        private Function<JsonElement, Optional<T>> preRead;
-
-        private TypeSelectorTypeAdapter(Class superClass, TypeSelector typeSelector, Gson gson) {
+        private TypeSelectorTypeAdapter(Class superClass, TypeSelector typeSelector, Gson gson, PreRead<T> preRead) {
             this.superClass = superClass;
             this.typeSelector = typeSelector;
             this.gson = gson;
+            this.preRead = preRead;
         }
 
         @Override
@@ -67,13 +68,13 @@ public class TypeSelectorTypeAdapterFactory<T> implements TypeAdapterFactory{
         public T read(JsonReader in) throws IOException {
             JsonElement json = new JsonParser().parse(in);
 
-            Optional<T> re = preRead != null ? preRead.apply(json) : Optional.empty();
+            Optional<T> re = preRead != null ? preRead.read(json) : Optional.empty();
             if (re.isPresent()) {
                 return re.get();
             }
 
             Class deserialize = this.typeSelector.getClassForElement(json);
-            if(deserialize == null) {
+            if (deserialize == null) {
                 deserialize = superClass;
             }
 
@@ -90,10 +91,6 @@ public class TypeSelectorTypeAdapterFactory<T> implements TypeAdapterFactory{
                 alreadyResolvedTypeTokensRegistry.remove(typeToken);
             }
             return JsonUtils.fromJsonTree(otherTypeAdapter, in, json);
-        }
-
-        public void setPreRead(Function<JsonElement, Optional<T>> preRead) {
-            this.preRead = preRead;
         }
     }
 }

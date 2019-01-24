@@ -1,14 +1,11 @@
 package io.gsonfire.gson;
 
-import com.google.gson.JsonElement;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 
 import java.io.IOException;
-import java.util.Optional;
-import java.util.function.Function;
 
 /**
  * @autor: julio
@@ -38,9 +35,5 @@ public final class NullableTypeAdapter<T> extends TypeAdapter<T> {
         } else {
             return nullable.read(in);
         }
-    }
-
-    public void setPreRead(Function<JsonElement, Optional<T>> preRead) {
-        ((TypeSelectorTypeAdapterFactory.TypeSelectorTypeAdapter) nullable).setPreRead(preRead);
     }
 }

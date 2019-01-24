@@ -13,6 +13,7 @@ public final class ClassConfig<T> {
     private Collection<PreProcessor<T>> preProcessors;
     private Collection<PostProcessor<T>> postProcessors;
     private boolean hooksEnabled;
+    private PreRead<T> preRead;
 
     public ClassConfig(Class<T> clazz) {
         this.clazz = clazz;
@@ -50,5 +51,13 @@ public final class ClassConfig<T> {
 
     public void setHooksEnabled(boolean hooksEnabled) {
         this.hooksEnabled = hooksEnabled;
+    }
+
+    public PreRead<T> getPreRead() {
+        return preRead;
+    }
+
+    public void setPreRead(PreRead<T> preRead) {
+        this.preRead = preRead;
     }
 }
