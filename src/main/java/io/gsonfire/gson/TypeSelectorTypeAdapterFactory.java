@@ -9,7 +9,9 @@ import io.gsonfire.TypeSelector;
 import io.gsonfire.util.JsonUtils;
 
 import java.io.IOException;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 
 /**
  * Creates a {@link TypeAdapter} that will run the {@link TypeSelector} and find the {@link TypeAdapter} for the selected
@@ -41,11 +43,13 @@ public class TypeSelectorTypeAdapterFactory<T> implements TypeAdapterFactory{
         }
     }
 
-    private class TypeSelectorTypeAdapter<T> extends TypeAdapter<T> {
+    class TypeSelectorTypeAdapter<T> extends TypeAdapter<T> {
 
         private final Class superClass;
         private final TypeSelector typeSelector;
         private final Gson gson;
+
+        private Function<JsonElement, Optional<T>> preRead;
 
         private TypeSelectorTypeAdapter(Class superClass, TypeSelector typeSelector, Gson gson) {
             this.superClass = superClass;
@@ -62,6 +66,12 @@ public class TypeSelectorTypeAdapterFactory<T> implements TypeAdapterFactory{
         @Override
         public T read(JsonReader in) throws IOException {
             JsonElement json = new JsonParser().parse(in);
+
+            Optional<T> re = preRead != null ? preRead.apply(json) : Optional.empty();
+            if (re.isPresent()) {
+                return re.get();
+            }
+
             Class deserialize = this.typeSelector.getClassForElement(json);
             if(deserialize == null) {
                 deserialize = superClass;
@@ -81,6 +91,9 @@ public class TypeSelectorTypeAdapterFactory<T> implements TypeAdapterFactory{
             }
             return JsonUtils.fromJsonTree(otherTypeAdapter, in, json);
         }
-    }
 
+        public void setPreRead(Function<JsonElement, Optional<T>> preRead) {
+            this.preRead = preRead;
+        }
+    }
 }

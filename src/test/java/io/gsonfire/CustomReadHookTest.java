@@ -12,6 +12,7 @@ import static org.junit.Assert.assertEquals;
 public class CustomReadHookTest {
     @Test
     public void test() {
+        final Typed staticTyped = new Typed();
         final Gson gson = new GsonFireBuilder()
                 .registerTypeSelector(Typed.class, readElement -> null)
                 .createGson();
@@ -19,7 +20,6 @@ public class CustomReadHookTest {
         final String json = gson.toJson(new Typed());
         assertEquals("{\"name\":\"io.gsonfire.CustomReadHookTest$Typed\"}", json);
 
-        final Typed staticTyped = new Typed();
         final Typed instance = gson.fromJson(json, Typed.class);
         Assert.assertNotSame(staticTyped, instance);
 

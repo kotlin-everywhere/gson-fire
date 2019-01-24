@@ -98,5 +98,6 @@ public final class HooksTypeAdapter<T> extends TypeAdapter<T> {
 
     public void setPreRead(Function<JsonElement, Optional<T>> preRead) {
         this.preRead = preRead;
+        ((NullableTypeAdapter<T>) originalTypeAdapter).setPreRead(preRead);
     }
 }
