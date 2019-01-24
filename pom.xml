@@ -4,9 +4,9 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>io.gsonfire</groupId>
+    <groupId>com.github.kotlin-everywhere</groupId>
     <artifactId>gson-fire</artifactId>
-    <version>1.8.3</version>
+    <version>1.8.3-1</version>
 
     <name>Gson on Fire!</name>
     <description>
@@ -22,19 +22,13 @@
         </license>
     </licenses>
 
-    <developers>
-        <developer>
-            <name>Julio Viera</name>
-            <email>julio.viera@gmail.com</email>
-            <organizationUrl>https://github.com/julman99</organizationUrl>
-        </developer>
-    </developers>
-
-    <scm>
-        <connection>scm:git:git@github.com:julman99/gson-fire.git</connection>
-        <developerConnection>scm:git:git@github.com:julman99/gson-fire.git</developerConnection>
-        <url>git@github.com:julman99/gson-fire.git</url>
-    </scm>
+    <!--<developers>-->
+        <!--<developer>-->
+            <!--<name>Julio Viera</name>-->
+            <!--<email>julio.viera@gmail.com</email>-->
+            <!--<organizationUrl>https://github.com/julman99</organizationUrl>-->
+        <!--</developer>-->
+    <!--</developers>-->
 
     <build>
         <plugins>
@@ -43,8 +37,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.1</version>
                 <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
+                    <source>1.8</source>
+                    <target>1.8</target>
                 </configuration>
             </plugin>
             <plugin>
@@ -55,23 +49,6 @@
                     <execution>
                         <goals>
                             <goal>test-jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-gpg-plugin</artifactId>
-                <version>1.6</version>
-                <configuration>
-                    <keyname>CEEEC86D352AE2382EB7B3C278D3BC71ED7A3073</keyname>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>sign-artifacts</id>
-                        <phase>deploy</phase>
-                        <goals>
-                            <goal>sign</goal>
                         </goals>
                     </execution>
                 </executions>
@@ -99,17 +76,6 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.sonatype.plugins</groupId>
-                <artifactId>nexus-staging-maven-plugin</artifactId>
-                <version>1.6.2</version>
-                <extensions>true</extensions>
-                <configuration>
-                    <serverId>ossrh</serverId>
-                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
-                </configuration>
-            </plugin>
         </plugins>
     </build>
 
@@ -131,11 +97,4 @@
         <!-- github server corresponds to entry in ~/.m2/settings.xml -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-
-    <distributionManagement>
-        <repository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
-    </distributionManagement>
 </project>

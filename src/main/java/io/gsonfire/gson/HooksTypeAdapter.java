@@ -13,6 +13,8 @@ import io.gsonfire.PreProcessor;
 import io.gsonfire.util.JsonUtils;
 
 import java.io.IOException;
+import java.util.Optional;
+import java.util.function.Function;
 
 /**
  * @autor: julio
@@ -24,6 +26,7 @@ public final class HooksTypeAdapter<T> extends TypeAdapter<T> {
     private final Gson gson;
     private final TypeAdapter<T> originalTypeAdapter;
     private final HooksInvoker hooksInvoker = new HooksInvoker();
+    private Function<JsonElement, Optional<T>> preRead;
 
     public HooksTypeAdapter(Class<T> classAdapter, ClassConfig<? super T> classConfig, TypeAdapter<T> originalTypeAdapter, Gson gson) {
         this.classConfig = classConfig;
@@ -34,7 +37,7 @@ public final class HooksTypeAdapter<T> extends TypeAdapter<T> {
 
     @Override
     public void write(JsonWriter out, T value) throws IOException {
-        if(classConfig.isHooksEnabled()){
+        if (classConfig.isHooksEnabled()) {
             hooksInvoker.preSerialize(value);
         }
 
@@ -51,7 +54,13 @@ public final class HooksTypeAdapter<T> extends TypeAdapter<T> {
         JsonElement json = new JsonParser().parse(in);
 
         runPreDeserialize(json);
-        T result = deserialize(json, in.isLenient());
+        Optional<T> re = preRead != null ? preRead.apply(json) : Optional.empty();
+        T result;
+        if (re.isPresent()) {
+            result = re.get();
+        } else {
+            result = deserialize(json, in.isLenient());
+        }
 
         //Run all the post deserializers
         if (classConfig.isHooksEnabled()) {
@@ -62,29 +71,32 @@ public final class HooksTypeAdapter<T> extends TypeAdapter<T> {
         return result;
     }
 
-    private void runPostSerialize(JsonElement json, T src){
-        for(PostProcessor<? super T> postProcessor: classConfig.getPostProcessors()){
+    private void runPostSerialize(JsonElement json, T src) {
+        for (PostProcessor<? super T> postProcessor : classConfig.getPostProcessors()) {
             postProcessor.postSerialize(json, src, gson);
         }
     }
 
-    private void runPostDeserialize(T res, JsonElement src){
-        for(PostProcessor<? super T> postProcessor: classConfig.getPostProcessors()){
+    private void runPostDeserialize(T res, JsonElement src) {
+        for (PostProcessor<? super T> postProcessor : classConfig.getPostProcessors()) {
             postProcessor.postDeserialize(res, src, gson);
         }
     }
 
-    private void runPreDeserialize(JsonElement json){
-        for(PreProcessor<? super T> preProcessor: classConfig.getPreProcessors()){
+    private void runPreDeserialize(JsonElement json) {
+        for (PreProcessor<? super T> preProcessor : classConfig.getPreProcessors()) {
             preProcessor.preDeserialize(clazz, json, gson);
         }
     }
 
-    private T deserialize(JsonElement json, boolean lenient) throws IOException{
+    private T deserialize(JsonElement json, boolean lenient) throws IOException {
         JsonReader jsonReader = new JsonTreeReader(json);
         jsonReader.setLenient(lenient);
         T deserialized = originalTypeAdapter.read(jsonReader);
         return deserialized;
     }
 
+    public void setPreRead(Function<JsonElement, Optional<T>> preRead) {
+        this.preRead = preRead;
+    }
 }
